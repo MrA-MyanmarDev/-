@@ -1,25 +1,19 @@
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  SafeAreaView,
-  StatusBar,
-  Modal
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  ScrollView, SafeAreaView, StatusBar, Modal
 } from 'react-native';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('CHAT'); // 'CHAT' | 'TOOLS' | 'IDE'
+  const [activeTab, setActiveTab] = useState('HUD'); // 'HUD' | 'TOOLS' | 'IDE'
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [torchActive, setTorchActive] = useState(false);
   const [messages, setMessages] = useState([
-    { id: 1, sender: 'ai', text: 'အာကာလင်းသစ် Super AI စနစ် အဆင်သင့်ဖြစ်ပါပြီ။ ဘာကူညီပေးရမလဲခင်ဗျာ။' }
+    { id: 1, sender: 'system', text: 'INITIATING ARKAR LINN THIT AI CORE...' },
+    { id: 2, sender: 'ai', text: 'မင်္ဂလာပါ။ အာကာလင်းသစ် Super AI စနစ် အဆင်သင့်ဖြစ်ပါပြီ။ ကျွန်တော် ဘာများ ကူညီပေးရမလဲ။' }
   ]);
   const [inputText, setInputText] = useState('');
-  const [codeContent, setCodeContent] = useState('// ArkarLinnThit AI Code Studio\nfunction jarvisCore() {\n  console.log("Core System Operational");\n}\njarvisCore();');
+  const [codeContent, setCodeContent] = useState('// ArkarLinnThit AI: Live Code Editor\n\nfunction initializeSystem() {\n  const status = "Online";\n  const power = "100%";\n  return `Core ${status}, Power at ${power}`;\n}\n\nconsole.log(initializeSystem());');
 
   const handleSend = () => {
     if (!inputText.trim()) return;
@@ -29,175 +23,169 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#030811" />
+      <StatusBar barStyle="light-content" backgroundColor="#020408" />
 
-      {/* Top Glassmorphic HUD Header */}
+      {/* --- TOP HEADER (HUD BAR) --- */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuBtn} onPress={() => setIsDrawerOpen(true)}>
-          <Text style={styles.menuBtnText}>⚙️</Text>
+        <TouchableOpacity style={styles.menuIconBox} onPress={() => setIsDrawerOpen(true)}>
+          <Text style={styles.menuIcon}>ᯤ</Text>
         </TouchableOpacity>
         
         <View style={styles.titleContainer}>
           <Text style={styles.appTitle}>ARKAR LINN THIT AI</Text>
-          <Text style={styles.subTitle}>SUPER APP HUD • v1.0</Text>
+          <Text style={styles.subTitle}>S P A T I A L   O S  •  v 2.0</Text>
         </View>
 
-        <View style={styles.statusDot} />
+        <View style={styles.statusBox}>
+          <View style={styles.pulseDot} />
+          <Text style={styles.statusText}>ONLINE</Text>
+        </View>
       </View>
 
-      {/* Top Dynamic Mode Selector Bar */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'CHAT' && styles.activeTabBtn]} 
-          onPress={() => setActiveTab('CHAT')}>
-          <Text style={[styles.tabBtnText, activeTab === 'CHAT' && styles.activeTabText]}>💬 AI HUD</Text>
+      {/* --- NAVIGATION TABS --- */}
+      <View style={styles.navBar}>
+        <TouchableOpacity style={[styles.navBtn, activeTab === 'HUD' && styles.navBtnActive]} onPress={() => setActiveTab('HUD')}>
+          <Text style={[styles.navText, activeTab === 'HUD' && styles.navTextActive]}>◉ AI HUD</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'TOOLS' && styles.activeTabBtn]} 
-          onPress={() => setActiveTab('TOOLS')}>
-          <Text style={[styles.tabBtnText, activeTab === 'TOOLS' && styles.activeTabText]}>⚡ TOOLS</Text>
+        <TouchableOpacity style={[styles.navBtn, activeTab === 'TOOLS' && styles.navBtnActive]} onPress={() => setActiveTab('TOOLS')}>
+          <Text style={[styles.navText, activeTab === 'TOOLS' && styles.navTextActive]}>⚡ HARDWARE</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.tabBtn, activeTab === 'IDE' && styles.activeTabBtn]} 
-          onPress={() => setActiveTab('IDE')}>
-          <Text style={[styles.tabBtnText, activeTab === 'IDE' && styles.activeTabText]}>💻 CODING</Text>
+        <TouchableOpacity style={[styles.navBtn, activeTab === 'IDE' && styles.navBtnActive]} onPress={() => setActiveTab('IDE')}>
+          <Text style={[styles.navText, activeTab === 'IDE' && styles.navTextActive]}>💻 TERMINAL</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Main Dynamic View Canvas (Morphs based on activeTab) */}
-      <View style={styles.canvasContainer}>
+      {/* --- MAIN DYNAMIC CANVAS --- */}
+      <View style={styles.canvas}>
         
-        {/* VIEW 1: AI CHAT & VISUALIZER */}
-        {activeTab === 'CHAT' && (
-          <View style={{ flex: 1 }}>
-            {/* Holographic Arc Reactor */}
-            <View style={styles.reactorContainer}>
-              <View style={styles.outerReactor}>
-                <View style={styles.innerReactor}>
-                  <Text style={styles.reactorText}>QWEN</Text>
+        {/* 1. AI HUD (Main Chat & Visualizer) */}
+        {activeTab === 'HUD' && (
+          <View style={styles.fullFlex}>
+            {/* ArkarLinnThit Advanced Core Visualizer */}
+            <View style={styles.coreWrapper}>
+              <View style={styles.coreOuterRing}>
+                <View style={styles.coreMiddleDashed}>
+                  <View style={styles.coreInnerSolid}>
+                    <Text style={styles.coreText}>ALT</Text>
+                    <Text style={styles.coreSubText}>AI CORE</Text>
+                  </View>
                 </View>
               </View>
             </View>
 
-            <ScrollView style={styles.chatStream} contentContainerStyle={{ paddingBottom: 10 }}>
-              {messages.map((item) => (
-                <View key={item.id} style={[styles.bubble, item.sender === 'user' ? styles.userBubble : styles.aiBubble]}>
-                  <Text style={styles.bubbleText}>{item.text}</Text>
-                </View>
-              ))}
+            <ScrollView style={styles.chatStream} showsVerticalScrollIndicator={false}>
+              {messages.map((msg) => {
+                if (msg.sender === 'system') {
+                  return <Text key={msg.id} style={styles.sysText}>[SYS]: {msg.text}</Text>;
+                }
+                const isUser = msg.sender === 'user';
+                return (
+                  <View key={msg.id} style={[styles.chatBubble, isUser ? styles.userBubble : styles.aiBubble]}>
+                    <Text style={styles.senderLabel}>{isUser ? 'USER IDENTIFIED' : 'ARKAR LINN THIT AI'}</Text>
+                    <Text style={styles.bubbleText}>{msg.text}</Text>
+                  </View>
+                );
+              })}
             </ScrollView>
           </View>
         )}
 
-        {/* VIEW 2: ANDROID CONTROL CENTER (CARDS) */}
+        {/* 2. HARDWARE & TOOLS */}
         {activeTab === 'TOOLS' && (
-          <ScrollView style={styles.toolsGrid}>
-            <Text style={styles.sectionHeader}>SYSTEM CONTROL CENTER</Text>
-
-            <View style={styles.cardRow}>
-              {/* Torch Card */}
-              <TouchableOpacity 
-                style={[styles.toolCard, torchActive && styles.toolCardActive]} 
-                onPress={() => setTorchActive(!torchActive)}>
+          <ScrollView style={styles.fullFlex} showsVerticalScrollIndicator={false}>
+            <Text style={styles.sectionTitle}>// SYSTEM OVERRIDE CONTROLS</Text>
+            
+            <View style={styles.gridRow}>
+              <TouchableOpacity style={[styles.gridCard, torchActive && styles.gridCardActive]} onPress={() => setTorchActive(!torchActive)}>
                 <Text style={styles.cardIcon}>🔦</Text>
-                <Text style={styles.cardTitle}>Flashlight</Text>
-                <Text style={styles.cardStatus}>{torchActive ? 'ON' : 'OFF'}</Text>
+                <Text style={styles.cardTitle}>ILLUMINATION</Text>
+                <Text style={[styles.cardStatus, torchActive && {color: '#00F0FF'}]}>{torchActive ? 'ENGAGED' : 'STANDBY'}</Text>
               </TouchableOpacity>
 
-              {/* Camera Quick Action Card */}
-              <TouchableOpacity style={styles.toolCard}>
+              <TouchableOpacity style={styles.gridCard}>
                 <Text style={styles.cardIcon}>📷</Text>
-                <Text style={styles.cardTitle}>Camera Launch</Text>
-                <Text style={styles.cardSub}>Ready</Text>
+                <Text style={styles.cardTitle}>OPTICS SYSTEM</Text>
+                <Text style={styles.cardStatus}>READY TO LAUNCH</Text>
               </TouchableOpacity>
             </View>
 
-            <View style={styles.cardRow}>
-              {/* System Monitor Card */}
-              <View style={styles.toolCardLarge}>
-                <Text style={styles.cardIcon}>📊</Text>
-                <Text style={styles.cardTitle}>System Diagnostics</Text>
-                <Text style={styles.cardSub}>• CPU Status: Operational</Text>
-                <Text style={styles.cardSub}>• AI Model Latency: 42ms</Text>
-                <Text style={styles.cardSub}>• Battery Efficiency: 98%</Text>
-              </View>
+            <Text style={styles.sectionTitle}>// DIAGNOSTICS</Text>
+            <View style={styles.diagPanel}>
+              <View style={styles.diagRow}><Text style={styles.diagLabel}>CPU LOAD:</Text><Text style={styles.diagValue}>14.2%</Text></View>
+              <View style={styles.diagRow}><Text style={styles.diagLabel}>CORE TEMP:</Text><Text style={styles.diagValue}>34°C</Text></View>
+              <View style={styles.diagRow}><Text style={styles.diagLabel}>NEURAL NET:</Text><Text style={styles.diagValue}>STABLE (24ms)</Text></View>
+              <View style={styles.progressBar}><View style={styles.progressFill} /></View>
             </View>
           </ScrollView>
         )}
 
-        {/* VIEW 3: AI CODING STUDIO (IDE) */}
+        {/* 3. TERMINAL / IDE */}
         {activeTab === 'IDE' && (
           <View style={styles.ideContainer}>
-            <View style={styles.ideHeader}>
-              <Text style={styles.ideTitle}>📄 main_script.js</Text>
-              <TouchableOpacity style={styles.runBtn}>
-                <Text style={styles.runBtnText}>▶ RUN</Text>
+            <View style={styles.ideTopBar}>
+              <Text style={styles.ideTabTitle}>alt_core_v1.js</Text>
+              <TouchableOpacity style={styles.compileBtn}>
+                <Text style={styles.compileBtnText}>COMPILE 🚀</Text>
               </TouchableOpacity>
             </View>
-            <TextInput
-              style={styles.codeArea}
-              multiline
-              value={codeContent}
-              onChangeText={setCodeContent}
-              placeholderTextColor="#2e4259"
-            />
-            <View style={styles.terminalConsole}>
-              <Text style={styles.terminalText}>[Console]: AI Engine connected to Code Workspace.</Text>
+            <View style={styles.editorArea}>
+              <TextInput
+                style={styles.codeText}
+                multiline
+                value={codeContent}
+                onChangeText={setCodeContent}
+                placeholderTextColor="#2e4259"
+              />
+            </View>
+            <View style={styles.consoleOutput}>
+              <Text style={styles.consoleText}>> ARKAR LINN THIT ENGINE V2.0 CONNECTED.</Text>
+              <Text style={styles.consoleText}>> WAITING FOR CODE EXECUTION...</Text>
             </View>
           </View>
         )}
       </View>
 
-      {/* Bottom Unified Input Control Bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.voiceBtn}>
-          <Text style={styles.voiceBtnText}>🎤</Text>
+      {/* --- UNIFIED INPUT CONSOLE --- */}
+      <View style={styles.inputConsole}>
+        <TouchableOpacity style={styles.micBtn}>
+          <Text style={styles.micIcon}>🎙️</Text>
         </TouchableOpacity>
 
         <TextInput
-          style={styles.mainInput}
-          placeholder="Command သို့မဟုတ် စာရိုက်ပါ..."
-          placeholderTextColor="#3a546e"
+          style={styles.textInput}
+          placeholder="Command ရိုက်ထည့်ပါ..."
+          placeholderTextColor="#3B5A7D"
           value={inputText}
           onChangeText={setInputText}
         />
 
         <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Text style={styles.sendBtnText}>➤</Text>
+          <Text style={styles.sendIcon}>➤</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Side Settings Drawer Modal */}
-      <Modal visible={isDrawerOpen} transparent animationType="slide">
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setIsDrawerOpen(false)}>
-          <View style={styles.drawerContainer}>
-            <Text style={styles.drawerTitle}>⚙️ JARVIS SETTINGS</Text>
+      {/* --- SYSTEM CONFIG DRAWER --- */}
+      <Modal visible={isDrawerOpen} transparent animationType="fade">
+        <View style={styles.modalBackdrop}>
+          <View style={styles.drawerPanel}>
+            <Text style={styles.drawerHeader}>⚙️ SYSTEM CONFIG</Text>
             
-            <TouchableOpacity style={styles.drawerItem} onPress={() => { setActiveTab('CHAT'); setIsDrawerOpen(false); }}>
-              <Text style={styles.drawerItemText}>💬 Main AI Companion</Text>
-            </TouchableOpacity>
+            <View style={styles.drawerContent}>
+              <Text style={styles.drawerLabel}>AI IDENTITY</Text>
+              <Text style={styles.drawerValue}>ArkarLinnThit Super AI</Text>
+              
+              <Text style={styles.drawerLabel}>LLM ENGINE</Text>
+              <Text style={styles.drawerValue}>Qwen 2.5 (Pending Link)</Text>
 
-            <TouchableOpacity style={styles.drawerItem} onPress={() => { setActiveTab('TOOLS'); setIsDrawerOpen(false); }}>
-              <Text style={styles.drawerItemText}>⚡ Android Tools & Hardware</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.drawerItem} onPress={() => { setActiveTab('IDE'); setIsDrawerOpen(false); }}>
-              <Text style={styles.drawerItemText}>💻 AI Live Coding Studio</Text>
-            </TouchableOpacity>
-
-            <View style={styles.drawerDivider} />
-
-            <Text style={styles.drawerSectionText}>Qwen AI Config</Text>
-            <Text style={styles.drawerSubText}>• Model: Qwen 2.5-7B Instruct</Text>
-            <Text style={styles.drawerSubText}>• Mode: Dynamic UI Generation</Text>
+              <Text style={styles.drawerLabel}>INTERFACE</Text>
+              <Text style={styles.drawerValue}>Spatial HUD v2.0</Text>
+            </View>
 
             <TouchableOpacity style={styles.closeDrawerBtn} onPress={() => setIsDrawerOpen(false)}>
-              <Text style={styles.closeDrawerText}>CLOSE PANEL</Text>
+              <Text style={styles.closeDrawerText}>CLOSE SETTINGS</Text>
             </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
     </SafeAreaView>
@@ -205,73 +193,89 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#030811' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 35, paddingBottom: 10, borderBottomWidth: 1, borderColor: '#0d223a' },
-  menuBtn: { padding: 8, backgroundColor: '#09182a', borderRadius: 8, borderWidth: 1, borderColor: '#00f2fe' },
-  menuBtnText: { fontSize: 16 },
+  container: { flex: 1, backgroundColor: '#020408' },
+  fullFlex: { flex: 1 },
+
+  /* --- HEADER --- */
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 40, paddingBottom: 15, backgroundColor: '#050A14', borderBottomWidth: 1, borderBottomColor: '#00F0FF' },
+  menuIconBox: { padding: 8, backgroundColor: 'rgba(0, 240, 255, 0.1)', borderRadius: 8, borderWidth: 1, borderColor: '#00F0FF' },
+  menuIcon: { color: '#00F0FF', fontSize: 18, fontWeight: 'bold' },
   titleContainer: { alignItems: 'center' },
-  appTitle: { color: '#00f2fe', fontSize: 16, fontWeight: 'bold', letterSpacing: 1.5 },
-  subTitle: { color: '#00ff88', fontSize: 9, fontWeight: '600', letterSpacing: 1 },
-  statusDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#00ff88' },
+  appTitle: { color: '#FFF', fontSize: 18, fontWeight: '900', letterSpacing: 2, textShadowColor: '#00F0FF', textShadowOffset: {width: 0, height: 0}, textShadowRadius: 8 },
+  subTitle: { color: '#00F0FF', fontSize: 9, fontWeight: '700', letterSpacing: 3, marginTop: 4 },
+  statusBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0, 230, 118, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#00E676' },
+  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#00E676', marginRight: 4 },
+  statusText: { color: '#00E676', fontSize: 10, fontWeight: 'bold' },
 
-  tabBar: { flexDirection: 'row', backgroundColor: '#071322', marginHorizontal: 16, marginTop: 10, borderRadius: 10, padding: 4, borderWidth: 1, borderColor: '#0d223a' },
-  tabBtn: { flex: 1, paddingVertical: 8, alignItems: 'center', borderRadius: 8 },
-  activeTabBtn: { backgroundColor: '#0f294a', borderWidth: 1, borderColor: '#00f2fe' },
-  tabBtnText: { color: '#52789c', fontSize: 11, fontWeight: 'bold' },
-  activeTabText: { color: '#00f2fe' },
+  /* --- NAVIGATION --- */
+  navBar: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 15, gap: 10 },
+  navBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: '#08101E', borderRadius: 8, borderWidth: 1, borderColor: '#122543' },
+  navBtnActive: { backgroundColor: 'rgba(0, 240, 255, 0.15)', borderColor: '#00F0FF' },
+  navText: { color: '#3B5A7D', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  navTextActive: { color: '#00F0FF', textShadowColor: '#00F0FF', textShadowOffset: {width:0, height:0}, textShadowRadius: 5 },
 
-  canvasContainer: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
+  /* --- CANVAS --- */
+  canvas: { flex: 1, paddingHorizontal: 16, paddingTop: 15 },
 
-  /* Reactor & Chat Styles */
-  reactorContainer: { alignItems: 'center', marginVertical: 8 },
-  outerReactor: { width: 60, height: 60, borderRadius: 30, borderWidth: 2, borderColor: '#00f2fe', justifyContent: 'center', alignItems: 'center' },
-  innerReactor: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0, 242, 254, 0.2)', justifyContent: 'center', alignItems: 'center' },
-  reactorText: { color: '#00f2fe', fontSize: 10, fontWeight: 'bold' },
+  /* Core Visualizer */
+  coreWrapper: { alignItems: 'center', marginVertical: 20 },
+  coreOuterRing: { width: 100, height: 100, borderRadius: 50, borderWidth: 1, borderColor: 'rgba(0, 240, 255, 0.3)', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 240, 255, 0.05)' },
+  coreMiddleDashed: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: '#00F0FF', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
+  coreInnerSolid: { width: 56, height: 56, borderRadius: 28, backgroundColor: '#00F0FF', justifyContent: 'center', alignItems: 'center', shadowColor: '#00F0FF', shadowOpacity: 0.8, shadowRadius: 15, elevation: 10 },
+  coreText: { color: '#020408', fontSize: 16, fontWeight: '900', letterSpacing: 1 },
+  coreSubText: { color: '#020408', fontSize: 7, fontWeight: 'bold', marginTop: 2 },
+
+  /* Chat System */
+  sysText: { color: '#00E676', fontFamily: 'monospace', fontSize: 10, alignSelf: 'center', marginVertical: 10 },
   chatStream: { flex: 1 },
-  bubble: { padding: 12, borderRadius: 12, marginVertical: 4, maxWidth: '85%' },
-  aiBubble: { backgroundColor: '#09192c', alignSelf: 'flex-start', borderWidth: 1, borderColor: '#112d4e' },
-  userBubble: { backgroundColor: '#004d73', alignSelf: 'flex-end' },
-  bubbleText: { color: '#dcf4ff', fontSize: 13, lineHeight: 18 },
+  chatBubble: { padding: 14, borderRadius: 12, marginVertical: 6, maxWidth: '88%', borderWidth: 1 },
+  aiBubble: { backgroundColor: 'rgba(93, 0, 255, 0.1)', borderColor: '#5D00FF', alignSelf: 'flex-start', borderTopLeftRadius: 2 },
+  userBubble: { backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: '#00F0FF', alignSelf: 'flex-end', borderTopRightRadius: 2 },
+  senderLabel: { color: '#FFF', fontSize: 9, fontWeight: '800', marginBottom: 6, opacity: 0.6, letterSpacing: 1 },
+  bubbleText: { color: '#E0F7FA', fontSize: 14, lineHeight: 22 },
 
-  /* Tools Cards Styles */
-  toolsGrid: { flex: 1 },
-  sectionHeader: { color: '#00f2fe', fontSize: 12, fontWeight: 'bold', marginBottom: 12, letterSpacing: 1 },
-  cardRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 },
-  toolCard: { flex: 1, backgroundColor: '#09182a', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#112d4e', marginHorizontal: 4, alignItems: 'center' },
-  toolCardActive: { borderColor: '#00ff88', backgroundColor: '#092823' },
-  toolCardLarge: { flex: 1, backgroundColor: '#09182a', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#112d4e', marginHorizontal: 4 },
-  cardIcon: { fontSize: 24, marginBottom: 6 },
-  cardTitle: { color: '#00f2fe', fontWeight: 'bold', fontSize: 13 },
-  cardStatus: { color: '#00ff88', fontWeight: 'bold', fontSize: 11, marginTop: 4 },
-  cardSub: { color: '#7a9bbd', fontSize: 11, marginTop: 2 },
+  /* Hardware / Tools */
+  sectionTitle: { color: '#3B5A7D', fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginBottom: 12, marginTop: 10 },
+  gridRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+  gridCard: { flex: 1, backgroundColor: '#08101E', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#122543', alignItems: 'center' },
+  gridCardActive: { backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: '#00F0FF', shadowColor: '#00F0FF', shadowRadius: 10, elevation: 5 },
+  cardIcon: { fontSize: 28, marginBottom: 10 },
+  cardTitle: { color: '#FFF', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
+  cardStatus: { color: '#3B5A7D', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
+  
+  diagPanel: { backgroundColor: '#08101E', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#122543' },
+  diagRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  diagLabel: { color: '#88A4C3', fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
+  diagValue: { color: '#00F0FF', fontSize: 12, fontWeight: '900', fontFamily: 'monospace' },
+  progressBar: { height: 4, backgroundColor: '#020408', borderRadius: 2, marginTop: 10 },
+  progressFill: { width: '85%', height: '100%', backgroundColor: '#00F0FF', borderRadius: 2 },
 
-  /* IDE Styles */
-  ideContainer: { flex: 1, backgroundColor: '#051120', borderRadius: 10, borderWidth: 1, borderColor: '#112d4e', padding: 10 },
-  ideHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  ideTitle: { color: '#00f2fe', fontSize: 12, fontWeight: 'bold' },
-  runBtn: { backgroundColor: '#00ff88', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 6 },
-  runBtnText: { color: '#030811', fontWeight: 'bold', fontSize: 11 },
-  codeArea: { flex: 1, color: '#00f2fe', fontFamily: 'monospace', fontSize: 12, textAlignVertical: 'top' },
-  terminalConsole: { height: 40, backgroundColor: '#02060d', borderRadius: 6, padding: 8, marginTop: 6 },
-  terminalText: { color: '#00ff88', fontSize: 10, fontFamily: 'monospace' },
+  /* IDE View */
+  ideContainer: { flex: 1, backgroundColor: '#050A14', borderRadius: 12, borderWidth: 1, borderColor: '#5D00FF', overflow: 'hidden' },
+  ideTopBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#08101E', paddingHorizontal: 12, paddingVertical: 10, borderBottomWidth: 1, borderColor: '#5D00FF' },
+  ideTabTitle: { color: '#00F0FF', fontSize: 12, fontFamily: 'monospace', fontWeight: 'bold' },
+  compileBtn: { backgroundColor: '#5D00FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+  compileBtnText: { color: '#FFF', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
+  editorArea: { flex: 1, padding: 12 },
+  codeText: { flex: 1, color: '#00F0FF', fontFamily: 'monospace', fontSize: 13, textAlignVertical: 'top' },
+  consoleOutput: { backgroundColor: '#020408', padding: 12, borderTopWidth: 1, borderColor: '#122543', minHeight: 80 },
+  consoleText: { color: '#00E676', fontFamily: 'monospace', fontSize: 10, marginBottom: 4 },
 
-  /* Bottom Input Bar */
-  bottomBar: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#051120', borderTopWidth: 1, borderColor: '#0d223a' },
-  voiceBtn: { backgroundColor: '#09182a', width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#00f2fe' },
-  voiceBtnText: { fontSize: 18 },
-  mainInput: { flex: 1, backgroundColor: '#09182a', color: '#dcf4ff', paddingHorizontal: 14, borderRadius: 10, borderWidth: 1, borderColor: '#112d4e', marginHorizontal: 8, fontSize: 13 },
-  sendBtn: { backgroundColor: '#00f2fe', width: 44, height: 44, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  sendBtnText: { color: '#030811', fontSize: 16, fontWeight: 'bold' },
+  /* --- INPUT CONSOLE --- */
+  inputConsole: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 15, backgroundColor: '#050A14', borderTopWidth: 1, borderColor: '#00F0FF', alignItems: 'center' },
+  micBtn: { width: 48, height: 48, backgroundColor: 'rgba(0, 240, 255, 0.1)', borderRadius: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#00F0FF' },
+  micIcon: { fontSize: 20 },
+  textInput: { flex: 1, height: 48, backgroundColor: '#08101E', borderRadius: 12, borderWidth: 1, borderColor: '#122543', color: '#FFF', paddingHorizontal: 16, marginHorizontal: 10, fontSize: 14 },
+  sendBtn: { width: 48, height: 48, backgroundColor: '#00F0FF', borderRadius: 12, justifyContent: 'center', alignItems: 'center', shadowColor: '#00F0FF', shadowOpacity: 0.5, shadowRadius: 8, elevation: 5 },
+  sendIcon: { color: '#020408', fontSize: 20, fontWeight: '900' },
 
-  /* Modal Drawer Styles */
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(3, 8, 17, 0.85)', justifyContent: 'flex-start' },
-  drawerContainer: { width: '75%', height: '100%', backgroundColor: '#071527', padding: 20, borderRightWidth: 1, borderColor: '#00f2fe' },
-  drawerTitle: { color: '#00f2fe', fontSize: 16, fontWeight: 'bold', marginBottom: 20, letterSpacing: 1 },
-  drawerItem: { paddingVertical: 12, borderBottomWidth: 1, borderColor: '#0d223a' },
-  drawerItemText: { color: '#dcf4ff', fontSize: 14, fontWeight: '600' },
-  drawerDivider: { height: 1, backgroundColor: '#00f2fe', marginVertical: 20 },
-  drawerSectionText: { color: '#00ff88', fontSize: 12, fontWeight: 'bold', marginBottom: 6 },
-  drawerSubText: { color: '#688cae', fontSize: 11, marginVertical: 2 },
-  closeDrawerBtn: { marginTop: 30, backgroundColor: '#09182a', padding: 12, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: '#00f2fe' },
-  closeDrawerText: { color: '#00f2fe', fontWeight: 'bold', fontSize: 12 }
+  /* --- MODAL DRAWER --- */
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(2, 4, 8, 0.9)', justifyContent: 'center', alignItems: 'center' },
+  drawerPanel: { width: '85%', backgroundColor: '#050A14', padding: 25, borderRadius: 16, borderWidth: 1, borderColor: '#5D00FF', shadowColor: '#5D00FF', shadowRadius: 20, elevation: 10 },
+  drawerHeader: { color: '#FFF', fontSize: 16, fontWeight: '900', letterSpacing: 1, marginBottom: 20, textAlign: 'center' },
+  drawerContent: { backgroundColor: '#08101E', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#122543' },
+  drawerLabel: { color: '#3B5A7D', fontSize: 10, fontWeight: 'bold', letterSpacing: 1, marginBottom: 4, marginTop: 12 },
+  drawerValue: { color: '#00F0FF', fontSize: 14, fontWeight: 'bold' },
+  closeDrawerBtn: { marginTop: 25, backgroundColor: 'rgba(93, 0, 255, 0.2)', paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: '#5D00FF', alignItems: 'center' },
+  closeDrawerText: { color: '#FFF', fontSize: 12, fontWeight: '900', letterSpacing: 2 }
 });
