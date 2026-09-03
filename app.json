@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "ArkarLinnThit AI",
+    "slug": "arkarlinnthit-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.arkarlinnthit.ai",
+      "permissions": ["CAMERA", "RECORD_AUDIO", "FLASHLIGHT"]
+    }
+  }
+}
