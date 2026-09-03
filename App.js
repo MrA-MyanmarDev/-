@@ -32,7 +32,7 @@ export default function App() {
   }, []);
 
   const spin = rotateAnim.interpolate({
-    inputRange: [6],
+    inputRange: [1], // ဤနေရာတွင် အမှားကို ပြင်ဆင်ပြီး ဖြစ်သည်
     outputRange: ['0deg', '360deg'],
   });
 
