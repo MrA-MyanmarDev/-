@@ -1,248 +1,144 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, SafeAreaView, StatusBar, Modal, Alert
-} from 'react-native';
-import { Camera } from 'expo-camera';
-import * as Speech from 'expo-speech';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, StatusBar, Animated, Easing } from 'react-native';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('HUD');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [hasPermission, setHasPermission] = useState(null);
-  const [torchActive, setTorchActive] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  
   const [messages, setMessages] = useState([
-    { id: 1, sender: 'system', text: 'SYSTEM READY • HARDWARE MODULES INITIALIZED' },
-    { id: 2, sender: 'ai', text: 'မင်္ဂလာပါ။ အာကာလင်းသစ် AI စနစ်မှ ကြိုဆိုပါတယ်။ ဖုန်းမီးဖွင့်ရန် သို့မဟုတ် ခိုင်းစေလိုသည်များကို ပြောကြားနိုင်ပါပြီ။' }
+    { id: 1, sender: 'ai', text: 'System Initialized. JARVIS Online.' }
   ]);
   const [inputText, setInputText] = useState('');
+  
+  // Animation for AI Core
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Request Permissions on App Launch
   useEffect(() => {
-    (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-      if (status !== 'granted') {
-        Alert.alert("Permission Required", "ကင်မရာနှင့် ဖုန်းမီး သုံးစွဲရန် Permission ခွင့်ပြုပေးဖို့ လိုအပ်ပါသည်။");
-      }
-    })();
+    // Rotation Animation
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 4000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+
+    // Pulsing Animation
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.2, duration: 1500, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1500, useNativeDriver: true }),
+      ])
+    ).start();
   }, []);
 
-  // Text to Speech
-  const speakResponse = (text) => {
-    setIsSpeaking(true);
-    Speech.speak(text, {
-      language: 'my-MM',
-      pitch: 1.0,
-      rate: 0.95,
-      onDone: () => setIsSpeaking(false),
-      onError: () => setIsSpeaking(false),
-    });
-  };
-
-  // Toggle Torch/Flashlight
-  const toggleFlashlight = async () => {
-    if (!hasPermission) {
-      const { status } = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(status === 'granted');
-      if (status !== 'granted') return;
-    }
-
-    const newState = !torchActive;
-    setTorchActive(newState);
-    
-    const msg = newState ? 'ဖုန်းမီး ဖွင့်လိုက်ပါပြီ။' : 'ဖုန်းမီး ပိတ်လိုက်ပါပြီ။';
-    addMessage('ai', msg);
-    speakResponse(msg);
-  };
+  const spin = rotateAnim.interpolate({
+    inputRange: [6],
+    outputRange: ['0deg', '360deg'],
+  });
 
   const handleSend = () => {
     if (!inputText.trim()) return;
-    const userText = inputText.trim();
-    addMessage('user', userText);
+    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: inputText }]);
     setInputText('');
-
-    const lowerText = userText.toLowerCase();
     
-    if (lowerText.includes('မီးဖွင့်') || lowerText.includes('torch on') || lowerText.includes('flashlight on')) {
-      if (!torchActive) toggleFlashlight();
-    } else if (lowerText.includes('မီးပိတ်') || lowerText.includes('torch off') || lowerText.includes('flashlight off')) {
-      if (torchActive) toggleFlashlight();
-    } else {
-      const reply = `အမိန့် "${userText}" ကို လက်ခံရရှိပါသည်။ အာကာလင်းသစ် AI စနစ် အသင့်ရှိပါသည်။`;
-      addMessage('ai', reply);
-      speakResponse(reply);
-    }
-  };
-
-  const addMessage = (sender, text) => {
-    setMessages(prev => [...prev, { id: Date.now(), sender, text }]);
+    // AI Response Simulation
+    setTimeout(() => {
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: 'Processing your command...' }]);
+    }, 1000);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#020408" />
-
-      {/* Hardware Camera Surface for Torch Control */}
-      {hasPermission && (
-        <View style={styles.cameraHolder}>
-          <Camera 
-            style={styles.cameraPreview} 
-            type={Camera.Constants.Type.back}
-            flashMode={torchActive ? Camera.Constants.FlashMode.torch : Camera.Constants.FlashMode.off}
-          />
-        </View>
-      )}
-
-      {/* --- TOP HEADER --- */}
+      <StatusBar barStyle="light-content" backgroundColor="#02060c" />
+      
+      {/* Header HUD */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuIconBox} onPress={() => setIsDrawerOpen(true)}>
-          <Text style={styles.menuIcon}>ᯤ</Text>
-        </TouchableOpacity>
-        
-        <View style={styles.titleContainer}>
-          <Text style={styles.appTitle}>ARKAR LINN THIT AI</Text>
-          <Text style={styles.subTitle}>S P A T I A L   O S  •  v 2.5</Text>
+        <View>
+          <Text style={styles.appTitle}>ARKAR LINN THIT</Text>
+          <Text style={styles.subTitle}>SUPER AI INTERFACE</Text>
         </View>
-
         <View style={styles.statusBox}>
-          <View style={[styles.pulseDot, isSpeaking && { backgroundColor: '#00F0FF' }]} />
-          <Text style={styles.statusText}>{isSpeaking ? 'SPEAKING' : 'ONLINE'}</Text>
+          <Text style={styles.statusLabel}>CORE STATUS</Text>
+          <Text style={styles.statusValue}>STABLE</Text>
         </View>
       </View>
 
-      {/* --- NAVIGATION TABS --- */}
-      <View style={styles.navBar}>
-        <TouchableOpacity style={[styles.navBtn, activeTab === 'HUD' && styles.navBtnActive]} onPress={() => setActiveTab('HUD')}>
-          <Text style={[styles.navText, activeTab === 'HUD' && styles.navTextActive]}>◉ AI HUD</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.navBtn, activeTab === 'TOOLS' && styles.navBtnActive]} onPress={() => setActiveTab('TOOLS')}>
-          <Text style={[styles.navText, activeTab === 'TOOLS' && styles.navTextActive]}>⚡ HARDWARE</Text>
-        </TouchableOpacity>
+      {/* Animated Arc Reactor Core */}
+      <View style={styles.coreWrapper}>
+        <Animated.View style={[styles.outerRing, { transform: [{ rotate: spin }] }]}>
+          <View style={styles.ringNotch} />
+          <View style={[styles.ringNotch, { transform: [{ rotate: '90deg' }] }]} />
+          <View style={[styles.ringNotch, { transform: [{ rotate: '180deg' }] }]} />
+          <View style={[styles.ringNotch, { transform: [{ rotate: '270deg' }] }]} />
+        </Animated.View>
+        <Animated.View style={[styles.innerCore, { transform: [{ scale: pulseAnim }] }]}>
+          <View style={styles.coreGlow} />
+        </Animated.View>
       </View>
 
-      {/* --- MAIN CANVAS --- */}
-      <View style={styles.canvas}>
-        {activeTab === 'HUD' && (
-          <View style={styles.fullFlex}>
-            <View style={styles.coreWrapper}>
-              <View style={styles.coreOuterRing}>
-                <View style={[styles.coreMiddleDashed, isSpeaking && { borderColor: '#00E676' }]}>
-                  <TouchableOpacity style={styles.coreInnerSolid} onPress={() => speakResponse('အာကာလင်းသစ် AI စနစ် အလုပ်လုပ်နေပါသည်။')}>
-                    <Text style={styles.coreText}>ALT</Text>
-                    <Text style={styles.coreSubText}>{isSpeaking ? 'TALKING' : 'TOUCH ME'}</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-
-            <ScrollView style={styles.chatStream} showsVerticalScrollIndicator={false}>
-              {messages.map((msg) => {
-                if (msg.sender === 'system') {
-                  return <Text key={msg.id} style={styles.sysText}>[SYS]: {msg.text}</Text>;
-                }
-                const isUser = msg.sender === 'user';
-                return (
-                  <View key={msg.id} style={[styles.chatBubble, isUser ? styles.userBubble : styles.aiBubble]}>
-                    <Text style={styles.senderLabel}>{isUser ? 'COMMAND SENT' : 'ARKAR LINN THIT AI'}</Text>
-                    <Text style={styles.bubbleText}>{msg.text}</Text>
-                  </View>
-                );
-              })}
-            </ScrollView>
+      {/* Chat Display */}
+      <ScrollView style={styles.chatArea} showsVerticalScrollIndicator={false}>
+        {messages.map((item) => (
+          <View key={item.id} style={[styles.bubble, item.sender === 'user' ? styles.userBubble : styles.aiBubble]}>
+            <Text style={styles.msgText}>{item.text}</Text>
           </View>
-        )}
+        ))}
+      </ScrollView>
 
-        {activeTab === 'TOOLS' && (
-          <ScrollView style={styles.fullFlex} showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionTitle}>// HARDWARE OVERRIDE</Text>
-            
-            <View style={styles.gridRow}>
-              <TouchableOpacity 
-                style={[styles.gridCard, torchActive && styles.gridCardActive]} 
-                onPress={toggleFlashlight}>
-                <Text style={styles.cardIcon}>🔦</Text>
-                <Text style={styles.cardTitle}>FLASHLIGHT</Text>
-                <Text style={[styles.cardStatus, torchActive && { color: '#00F0FF' }]}>
-                  {torchActive ? 'ENGAGED (ON)' : 'STANDBY (OFF)'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        )}
+      {/* Bottom Control HUD */}
+      <View style={styles.footer}>
+        <View style={styles.actionGrid}>
+          {['VOICE', 'TORCH', 'CAMERA'].map((label) => (
+            <TouchableOpacity key={label} style={styles.hudBtn}>
+              <Text style={styles.hudBtnText}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="ENTER COMMAND..."
+            placeholderTextColor="#1c3d5a"
+            value={inputText}
+            onChangeText={setInputText}
+          />
+          <TouchableOpacity style={styles.sendIcon} onPress={handleSend}>
+            <Text style={{ color: '#000', fontWeight: 'bold' }}>SEND</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-
-      {/* --- INPUT CONSOLE --- */}
-      <View style={styles.inputConsole}>
-        <TextInput
-          style={styles.textInput}
-          placeholder='စာရိုက်ပါ သို့မဟုတ် "မီးဖွင့်" ဟု ရိုက်ပါ...'
-          placeholderTextColor="#3B5A7D"
-          value={inputText}
-          onChangeText={setInputText}
-          onSubmitEditing={handleSend}
-        />
-
-        <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
-          <Text style={styles.sendIcon}>➤</Text>
-        </TouchableOpacity>
-      </View>
-
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020408' },
-  fullFlex: { flex: 1 },
-  cameraHolder: { position: 'absolute', top: 0, left: 0, width: 1, height: 1, opacity: 0.01 },
-  cameraPreview: { width: 1, height: 1 },
+  container: { flex: 1, backgroundColor: '#02060c', padding: 20 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#00f2fe', paddingBottom: 10, marginTop: 20 },
+  appTitle: { color: '#00f2fe', fontSize: 18, fontWeight: 'bold', letterSpacing: 3 },
+  subTitle: { color: '#00f2fe', fontSize: 10, opacity: 0.6 },
+  statusBox: { alignItems: 'flex-end' },
+  statusLabel: { color: '#00ff88', fontSize: 8 },
+  statusValue: { color: '#00ff88', fontSize: 12, fontWeight: 'bold' },
 
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 40, paddingBottom: 15, backgroundColor: '#050A14', borderBottomWidth: 1, borderBottomColor: '#00F0FF' },
-  menuIconBox: { padding: 8, backgroundColor: 'rgba(0, 240, 255, 0.1)', borderRadius: 8, borderWidth: 1, borderColor: '#00F0FF' },
-  menuIcon: { color: '#00F0FF', fontSize: 18, fontWeight: 'bold' },
-  titleContainer: { alignItems: 'center' },
-  appTitle: { color: '#FFF', fontSize: 18, fontWeight: '900', letterSpacing: 2 },
-  subTitle: { color: '#00F0FF', fontSize: 9, fontWeight: '700', letterSpacing: 3, marginTop: 4 },
-  statusBox: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(0, 230, 118, 0.1)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#00E676' },
-  pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#00E676', marginRight: 4 },
-  statusText: { color: '#00E676', fontSize: 10, fontWeight: 'bold' },
+  coreWrapper: { height: 150, justifyContent: 'center', alignItems: 'center', marginVertical: 20 },
+  outerRing: { width: 100, height: 100, borderRadius: 50, borderWidth: 2, borderColor: '#00f2fe', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
+  ringNotch: { position: 'absolute', width: 10, height: 4, backgroundColor: '#00f2fe' },
+  innerCore: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#00f2fe', shadowColor: '#00f2fe', shadowRadius: 20, shadowOpacity: 1, elevation: 15 },
+  coreGlow: { width: '100%', height: '100%', borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.5)' },
 
-  navBar: { flexDirection: 'row', paddingHorizontal: 16, marginTop: 15, gap: 10 },
-  navBtn: { flex: 1, paddingVertical: 10, alignItems: 'center', backgroundColor: '#08101E', borderRadius: 8, borderWidth: 1, borderColor: '#122543' },
-  navBtnActive: { backgroundColor: 'rgba(0, 240, 255, 0.15)', borderColor: '#00F0FF' },
-  navText: { color: '#3B5A7D', fontSize: 11, fontWeight: '800', letterSpacing: 1 },
-  navTextActive: { color: '#00F0FF' },
+  chatArea: { flex: 1, marginBottom: 10 },
+  bubble: { padding: 15, borderRadius: 2, marginVertical: 8, maxWidth: '85%', borderLeftWidth: 3 },
+  aiBubble: { backgroundColor: 'rgba(0, 242, 254, 0.05)', alignSelf: 'flex-start', borderLeftColor: '#00f2fe' },
+  userBubble: { backgroundColor: 'rgba(0, 255, 136, 0.05)', alignSelf: 'flex-end', borderLeftColor: '#00ff88' },
+  msgText: { color: '#c0d6e4', fontSize: 13, letterSpacing: 1 },
 
-  canvas: { flex: 1, paddingHorizontal: 16, paddingTop: 15 },
-
-  coreWrapper: { alignItems: 'center', marginVertical: 15 },
-  coreOuterRing: { width: 90, height: 90, borderRadius: 45, borderWidth: 1, borderColor: 'rgba(0, 240, 255, 0.3)', justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 240, 255, 0.05)' },
-  coreMiddleDashed: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#00F0FF', borderStyle: 'dashed', justifyContent: 'center', alignItems: 'center' },
-  coreInnerSolid: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#00F0FF', justifyContent: 'center', alignItems: 'center' },
-  coreText: { color: '#020408', fontSize: 14, fontWeight: '900' },
-  coreSubText: { color: '#020408', fontSize: 6, fontWeight: 'bold', marginTop: 1 },
-
-  sysText: { color: '#00E676', fontFamily: 'monospace', fontSize: 10, alignSelf: 'center', marginVertical: 8 },
-  chatStream: { flex: 1 },
-  chatBubble: { padding: 14, borderRadius: 12, marginVertical: 6, maxWidth: '88%', borderWidth: 1 },
-  aiBubble: { backgroundColor: 'rgba(93, 0, 255, 0.1)', borderColor: '#5D00FF', alignSelf: 'flex-start' },
-  userBubble: { backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: '#00F0FF', alignSelf: 'flex-end' },
-  senderLabel: { color: '#FFF', fontSize: 9, fontWeight: '800', marginBottom: 4, opacity: 0.6 },
-  bubbleText: { color: '#E0F7FA', fontSize: 14, lineHeight: 20 },
-
-  sectionTitle: { color: '#3B5A7D', fontSize: 12, fontWeight: 'bold', letterSpacing: 2, marginBottom: 12, marginTop: 10 },
-  gridRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
-  gridCard: { flex: 1, backgroundColor: '#08101E', padding: 20, borderRadius: 12, borderWidth: 1, borderColor: '#122543', alignItems: 'center' },
-  gridCardActive: { backgroundColor: 'rgba(0, 240, 255, 0.1)', borderColor: '#00F0FF' },
-  cardIcon: { fontSize: 28, marginBottom: 10 },
-  cardTitle: { color: '#FFF', fontSize: 11, fontWeight: '800' },
-  cardStatus: { color: '#3B5A7D', fontSize: 10, fontWeight: 'bold', marginTop: 6 },
-
-  inputConsole: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 15, backgroundColor: '#050A14', borderTopWidth: 1, borderColor: '#00F0FF', alignItems: 'center' },
-  textInput: { flex: 1, height: 48, backgroundColor: '#08101E', borderRadius: 12, borderWidth: 1, borderColor: '#122543', color: '#FFF', paddingHorizontal: 16, marginRight: 10, fontSize: 13 },
-  sendBtn: { width: 48, height: 48, backgroundColor: '#00F0FF', borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  sendIcon: { color: '#020408', fontSize: 20, fontWeight: '900' }
+  footer: { paddingBottom: 10 },
+  actionGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
+  hudBtn: { flex: 1, borderWidth: 1, borderColor: '#00f2fe', padding: 10, marginHorizontal: 5, alignItems: 'center', backgroundColor: 'rgba(0, 242, 254, 0.1)' },
+  hudBtnText: { color: '#00f2fe', fontSize: 10, fontWeight: 'bold' },
+  
+  inputContainer: { flexDirection: 'row', height: 50 },
+  input: { flex: 1, borderWidth: 1, borderColor: '#1c3d5a', color: '#00f2fe', paddingHorizontal: 15, fontSize: 12 },
+  sendIcon: { backgroundColor: '#00f2fe', paddingHorizontal: 20, justifyContent: 'center', alignItems: 'center' }
 });
