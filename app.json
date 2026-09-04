@@ -5,23 +5,13 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "package": "com.arkarlinnthit.ai",
       "permissions": [
         "CAMERA",
+        "RECORD_AUDIO",
         "FLASHLIGHT"
       ]
-    },
-    "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow ArkarLinnThit AI to access camera and flashlight."
-        }
-      ]
-    ]
+    }
   }
 }
