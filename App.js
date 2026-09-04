@@ -1,81 +1,98 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  SafeAreaView, 
-  StatusBar, 
-  Alert,
-  ActivityIndicator
+  View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, 
+  SafeAreaView, StatusBar, Alert, ActivityIndicator 
 } from 'react-native';
 import * as Speech from 'expo-speech';
+import { Camera } from 'expo-camera';
 
-// OpenRouter သို့မဟုတ် Qwen API Key ထည့်ရန် (မထည့်ရသေးပါက Local Parser ဖြင့် အလိုအလျောက် အလုပ်လုပ်ပါမည်)
+// Qwen API Key ထည့်ရန် (OpenRouter/DashScope)
+// မထည့်ထားပါက Local AI Engine က အလိုအလျောက် အလုပ်လုပ်ပေးပါမည်။
 const QWEN_API_KEY = ""; 
 
 export default function App() {
   const [messages, setMessages] = useState([
-    { id: '1', sender: 'ai', text: 'အာကာလင်းသစ် AI (Qwen Brain Online) အသင့်ရှိပါပြီ။ အမိန့်ပေးနိုင်ပါသည်။' }
+    { id: '1', sender: 'ai', text: '✦ အာကာလင်းသစ် AI OS ✦ စတင်လည်ပတ်နေပါပြီ။' }
   ]);
   const [inputText, setInputText] = useState('');
-  const [torchStatus, setTorchStatus] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   
-  // UI State Switcher (Generative Fullscreen UI)
-  const [currentView, setCurrentView] = useState('MAIN'); // 'MAIN' | 'CALL_SCREEN'
-  const [callTarget, setCallTarget] = useState('');
+  // Hardware States
+  const [torchStatus, setTorchStatus] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
 
+  // OS Workspace States
+  const [currentView, setCurrentView] = useState('MAIN'); // MAIN, CALL, TERMINAL, MUSIC, TASKS, SYSTEM
+  const [actionTarget, setActionTarget] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasCameraPermission(status === 'granted');
+    })();
+  }, []);
+
+  // AI TTS (အသံဖြင့်ပြောခြင်း)
   const speakText = (text) => {
-    try {
-      Speech.speak(text, { language: 'my-MM' });
-    } catch (e) {
-      console.log('Speech error:', e);
-    }
+    try { Speech.speak(text, { language: 'my-MM', rate: 0.9 }); } 
+    catch (e) { console.log('Speech error:', e); }
   };
 
   const addAIMessage = (text) => {
     setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'ai', text }]);
   };
 
+  // 🔦 Hardware Control Function
   const toggleTorch = (explicitState = null) => {
     const nextState = explicitState !== null ? explicitState : !torchStatus;
     setTorchStatus(nextState);
-    const msg = nextState ? 'ဖုန်းမီး ဖွင့်လိုက်ပါပြီ။' : 'ဖုန်းမီး ပိတ်လိုက်ပါပြီ။';
-    addAIMessage(msg);
+    const msg = nextState ? 'ဖုန်းမီး ဖွင့်လိုက်ပါပြီ' : 'ဖုန်းမီး ပိတ်လိုက်ပါပြီ';
+    if(currentView === 'MAIN') addAIMessage(msg);
     speakText(msg);
   };
 
-  // Qwen AI Brain Function Calling Handler
-  const callQwenAPI = async (userPrompt) => {
+  // 🧠 AI Core Engine (API + Local Fallback)
+  const processCommand = async (userPrompt) => {
     setLoading(true);
     
-    // API Key မရှိသေးပါက Local Fallback Rules ဖြင့် တိုက်ရိုက် ခွဲခြားခြင်း
+    // --- 1. LOCAL FALLBACK ENGINE (API မရှိချိန် သို့မဟုတ် အမြန်ခိုင်းစေချိန်) ---
     if (!QWEN_API_KEY) {
       setTimeout(() => {
         setLoading(false);
-        if (userPrompt.includes('မီးဖွင့်') || userPrompt.toLowerCase().includes('torch on')) {
+        const text = userPrompt.toLowerCase();
+        
+        if (text.includes('မီးဖွင့်') || text.includes('torch on')) {
           toggleTorch(true);
-        } else if (userPrompt.includes('မီးပိတ်') || userPrompt.toLowerCase().includes('torch off')) {
+        } else if (text.includes('မီးပိတ်') || text.includes('torch off')) {
           toggleTorch(false);
-        } else if (userPrompt.includes('ခေါ်') || userPrompt.toLowerCase().includes('call')) {
-          const target = userPrompt.replace(/ခေါ်ပေး|ခေါ်ပါ|ဖုန်းခေါ်/g, '').trim() || 'မေသဉ္ဇာမင်း';
-          setCallTarget(target);
-          setCurrentView('CALL_SCREEN');
-          const reply = `${target} ထံ သို့ ဖုန်းခေါ်ဆိုနေပါသည်...`;
-          addAIMessage(reply);
-          speakText(reply);
+        } else if (text.includes('ခေါ်') || text.includes('call')) {
+          const target = userPrompt.replace(/ခေါ်ပေး|ခေါ်ပါ|ဖုန်းခေါ်/g, '').trim() || 'Boss';
+          setActionTarget(target);
+          setCurrentView('CALL');
+          speakText(`${target} ထံ ဖုန်းခေါ်နေပါသည်`);
+        } else if (text.includes('terminal') || text.includes('ကုဒ်') || text.includes('code')) {
+          setCurrentView('TERMINAL');
+          speakText('Terminal ဖွင့်လိုက်ပါပြီ');
+        } else if (text.includes('သီချင်း') || text.includes('music')) {
+          setCurrentView('MUSIC');
+          speakText('Media Player ကို ဖွင့်ပေးလိုက်ပါပြီ');
+        } else if (text.includes('စာရင်း') || text.includes('task')) {
+          setCurrentView('TASKS');
+          speakText('လုပ်ဆောင်ရန် စာရင်းများကို ပြသနေပါသည်');
+        } else if (text.includes('စနစ်') || text.includes('system')) {
+          setCurrentView('SYSTEM');
+          speakText('စနစ် အခြေအနေကို စစ်ဆေးနေပါသည်');
         } else {
-          const reply = `အမိန့် "${userPrompt}" ကို လက်ခံရရှိပါပြီ။ (Qwen API Key ထည့်သွင်းပါက ပိုမိုစမတ်ကျကျ တုံ့ပြန်ပေးမည်ဖြစ်သည်)`;
+          const reply = "နားလည်ပါပြီ။ အခြား ဘာများ ကူညီပေးရမလဲ။";
           addAIMessage(reply);
           speakText(reply);
         }
-      }, 800);
+      }, 500);
       return;
     }
 
+    // --- 2. QWEN API ENGINE (API ရှိချိန်) ---
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
@@ -88,10 +105,10 @@ export default function App() {
           messages: [
             {
               role: "system",
-              content: `You are ArkarLinnThit Super AI core. Process user intent and respond strictly in JSON format:
+              content: `You are ArkarLinnThit OS AI. Map the user request to a JSON action:
               {
-                "action": "TORCH_ON" | "TORCH_OFF" | "MAKE_CALL" | "CHAT",
-                "target_name": "extracted name if MAKE_CALL else empty",
+                "action": "TORCH_ON" | "TORCH_OFF" | "CALL" | "TERMINAL" | "MUSIC" | "TASKS" | "SYSTEM" | "CHAT",
+                "target": "name (if CALL) else empty",
                 "reply": "Myanmar language polite voice response"
               }`
             },
@@ -106,16 +123,16 @@ export default function App() {
 
       if (parsed.action === 'TORCH_ON') toggleTorch(true);
       else if (parsed.action === 'TORCH_OFF') toggleTorch(false);
-      else if (parsed.action === 'MAKE_CALL') {
-        setCallTarget(parsed.target_name || 'Phone Contact');
-        setCurrentView('CALL_SCREEN');
+      else if (['CALL', 'TERMINAL', 'MUSIC', 'TASKS', 'SYSTEM'].includes(parsed.action)) {
+        if(parsed.action === 'CALL') setActionTarget(parsed.target || 'Contact');
+        setCurrentView(parsed.action);
+      } else {
+        addAIMessage(parsed.reply);
       }
-
-      addAIMessage(parsed.reply);
       speakText(parsed.reply);
 
     } catch (err) {
-      addAIMessage("Qwen API ချိတ်ဆက်ရာတွင် အမှားအယွင်းရှိနေပါသည်။");
+      addAIMessage("AI Brain ချိတ်ဆက်မှု ပြတ်တောက်နေပါသည်။ Local Mode ဖြင့်သာ လုပ်ဆောင်နိုင်ပါသည်။");
     } finally {
       setLoading(false);
     }
@@ -126,105 +143,153 @@ export default function App() {
     const userCmd = inputText.trim();
     setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: userCmd }]);
     setInputText('');
-    callQwenAPI(userCmd);
+    processCommand(userCmd);
   };
 
+  // Simulated Voice Input
+  const triggerVoice = () => {
+    setIsListening(true);
+    speakText("နားထောင်နေပါတယ်");
+    setTimeout(() => {
+      setIsListening(false);
+      const fakeVoiceCmd = "စနစ်ပိုင်း စစ်ဆေးပေးပါ"; // အစမ်းလုပ်ဆောင်ချက်
+      setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: `🎤 ${fakeVoiceCmd}` }]);
+      processCommand(fakeVoiceCmd);
+    }, 2000);
+  };
+
+  // ---------------- UI WORKSPACES RENDERER ----------------
+  const renderWorkspace = () => {
+    // 1. CALL SCREEN
+    if (currentView === 'CALL') return (
+      <View style={styles.workspace}>
+        <Text style={styles.wsBadge}>NEURAL COMM LINK</Text>
+        <Text style={styles.wsTitle}>{actionTarget}</Text>
+        <Text style={styles.wsStatus}>Calling... 00:05</Text>
+        <View style={styles.avatarWrap}><Text style={{fontSize:50}}>📞</Text></View>
+        <TouchableOpacity style={styles.closeBtnRed} onPress={() => setCurrentView('MAIN')}>
+          <Text style={styles.closeBtnText}>📞 End Call</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+    // 2. TERMINAL SCREEN
+    if (currentView === 'TERMINAL') return (
+      <View style={[styles.workspace, {backgroundColor: '#000', alignItems: 'flex-start'}]}>
+        <Text style={styles.termText}>root@arkarlinnthit_os:~$ system_init</Text>
+        <Text style={styles.termText}>[OK] AI Core loaded...</Text>
+        <Text style={styles.termText}>[OK] Bypassing security protocols...</Text>
+        <Text style={styles.termText}>[WAIT] Compiling React Native modules...</Text>
+        <TouchableOpacity style={styles.closeBtnGhost} onPress={() => setCurrentView('MAIN')}>
+          <Text style={styles.termText}>> exit_terminal</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+    // 3. MUSIC PLAYER
+    if (currentView === 'MUSIC') return (
+      <View style={styles.workspace}>
+        <Text style={styles.wsBadge}>MEDIA SYNTHESIZER</Text>
+        <View style={styles.albumArt}><Text style={{fontSize:60}}>🎵</Text></View>
+        <Text style={styles.wsTitle}>Synthwave Mix</Text>
+        <Text style={styles.wsStatus}>▶ Playing Neural Audio</Text>
+        <TouchableOpacity style={styles.closeBtnAction} onPress={() => setCurrentView('MAIN')}>
+          <Text style={styles.closeBtnText}>Close Player</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+    // 4. TASKS / ACCOUNTING
+    if (currentView === 'TASKS') return (
+      <View style={[styles.workspace, {justifyContent: 'flex-start', paddingTop: 60}]}>
+        <Text style={styles.wsBadge}>DATA MATRIX</Text>
+        <View style={styles.taskCard}><Text style={styles.taskText}>☑ Server Maintenance</Text></View>
+        <View style={styles.taskCard}><Text style={styles.taskText}>☐ Optimize Qwen API</Text></View>
+        <View style={styles.taskCard}><Text style={styles.taskText}>☐ UI/UX Polish</Text></View>
+        <View style={{flex:1}} />
+        <TouchableOpacity style={styles.closeBtnAction} onPress={() => setCurrentView('MAIN')}>
+          <Text style={styles.closeBtnText}>Back to OS</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+    // 5. SYSTEM DIAGNOSTICS
+    if (currentView === 'SYSTEM') return (
+      <View style={styles.workspace}>
+        <Text style={styles.wsBadge}>SYSTEM MONITOR</Text>
+        <View style={styles.sysRow}><Text style={styles.sysText}>CPU Usage</Text><Text style={styles.sysVal}>24%</Text></View>
+        <View style={styles.sysRow}><Text style={styles.sysText}>RAM Allocation</Text><Text style={styles.sysVal}>1.2GB / 8GB</Text></View>
+        <View style={styles.sysRow}><Text style={styles.sysText}>Core Temp</Text><Text style={styles.sysVal}>38°C</Text></View>
+        <TouchableOpacity style={styles.closeBtnAction} onPress={() => setCurrentView('MAIN')}>
+          <Text style={styles.closeBtnText}>Close Monitor</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
+  // ---------------- MAIN OS RENDER ----------------
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#030712" />
+      <StatusBar barStyle="light-content" backgroundColor="#020617" />
       
-      {/* Dynamic View Generation: Active Call Screen */}
-      {currentView === 'CALL_SCREEN' ? (
-        <View style={styles.fullScreenCall}>
-          <Text style={styles.callBadge}>AI NEURAL CALL CONNECTED</Text>
-          <Text style={styles.callTitle}>{callTarget}</Text>
-          <Text style={styles.callStatus}>ခေါ်ဆိုနေသည် (Calling...) 00:05</Text>
-          
-          <View style={styles.callAvatarWrapper}>
-            <Text style={{ fontSize: 40 }}>📞</Text>
-          </View>
+      {/* Background Camera for Torch Control */}
+      {hasCameraPermission && <Camera style={{ width:1, height:1, opacity:0 }} flashMode={torchStatus ? Camera.Constants.FlashMode.torch : Camera.Constants.FlashMode.off} />}
 
-          <TouchableOpacity 
-            style={styles.endCallBtn} 
-            onPress={() => {
-              setCurrentView('MAIN');
-              speakText('ဖုန်းခေါ်ဆိုမှု ပြီးဆုံးပါပြီ');
-            }}
-          >
-            <Text style={styles.endCallText}>📞 ဖုန်းပိတ်မည်</Text>
-          </TouchableOpacity>
-        </View>
+      {currentView !== 'MAIN' ? (
+        renderWorkspace()
       ) : (
-        /* Standard AI OS Desktop Interface */
         <>
-          {/* Header */}
+          {/* HEADER */}
           <View style={styles.header}>
-            <Text style={styles.appTitle}>✦ ARKAR LINN THIT AI ✦</Text>
+            <Text style={styles.appTitle}>✦ ARKAR LINN THIT OS ✦</Text>
             <View style={styles.statusBadge}>
-              <View style={styles.onlineDot} />
-              <Text style={styles.statusText}>Qwen Brain Active</Text>
+              <View style={[styles.onlineDot, isListening && {backgroundColor: '#ef4444'}]} />
+              <Text style={[styles.statusText, isListening && {color: '#ef4444'}]}>
+                {isListening ? 'LISTENING...' : 'SYSTEM ONLINE'}
+              </Text>
             </View>
           </View>
 
-          {/* Core Visualizer */}
+          {/* AI VISUALIZER CORE */}
           <View style={styles.coreWrapper}>
-            <TouchableOpacity 
-              style={styles.outerRing} 
-              activeOpacity={0.8}
-              onPress={() => speakText("အာကာလင်းသစ် AI စနစ် အလုပ်လုပ်နေပါသည်။")}
-            >
-              <View style={[styles.innerCore, torchStatus && styles.activeCore]}>
-                {loading ? (
-                  <ActivityIndicator color="#06b6d4" />
-                ) : (
-                  <Text style={styles.coreText}>AI</Text>
-                )}
+            <TouchableOpacity style={styles.outerRing} activeOpacity={0.8} onPress={() => speakText("AI System အသင့်ရှိပါသည်")}>
+              <View style={[styles.innerCore, torchStatus && styles.activeCore, isListening && styles.listeningCore]}>
+                {loading ? <ActivityIndicator color="#06b6d4" /> : <Text style={styles.coreText}>AI</Text>}
               </View>
             </TouchableOpacity>
           </View>
 
-          {/* Chat / Generative Log */}
-          <ScrollView 
-            style={styles.chatContainer} 
-            contentContainerStyle={{ paddingVertical: 10 }}
-            showsVerticalScrollIndicator={false}
-          >
+          {/* CHAT LOG */}
+          <ScrollView style={styles.chatContainer} showsVerticalScrollIndicator={false}>
             {messages.map((item) => (
-              <View 
-                key={item.id} 
-                style={[styles.msgBubble, item.sender === 'user' ? styles.userBubble : styles.aiBubble]}
-              >
+              <View key={item.id} style={[styles.msgBubble, item.sender === 'user' ? styles.userBubble : styles.aiBubble]}>
                 <Text style={styles.msgText}>{item.text}</Text>
               </View>
             ))}
           </ScrollView>
 
-          {/* Bottom Action Bar */}
+          {/* CONTROLS */}
           <View style={styles.bottomSection}>
             <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.actionBtn} onPress={() => speakText("အသံဖြင့် အမိန့်ပေးရန် နားထောင်နေပါသည်")}>
+              <TouchableOpacity style={styles.actionBtn} onPress={triggerVoice}>
                 <Text style={styles.actionBtnText}>🎤 Voice</Text>
               </TouchableOpacity>
-
               <TouchableOpacity style={[styles.actionBtn, torchStatus && styles.activeActionBtn]} onPress={() => toggleTorch()}>
-                <Text style={[styles.actionBtnText, torchStatus && { color: '#030712' }]}>
-                  {torchStatus ? '🔦 Torch ON' : '🔦 Torch'}
-                </Text>
+                <Text style={[styles.actionBtnText, torchStatus && { color: '#020617' }]}>🔦 Torch</Text>
               </TouchableOpacity>
-
-              <TouchableOpacity style={styles.actionBtn} onPress={() => Alert.alert("Camera", "Camera Preview Active")}>
-                <Text style={styles.actionBtnText}>📷 Camera</Text>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => setCurrentView('SYSTEM')}>
+                <Text style={styles.actionBtnText}>⚙️ System</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Input Line */}
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.input}
-                placeholder="အမိန့်ပေးပါ (ဥပမာ - မေသဉ္ဇာမင်းကို ခေါ်ပေး / မီးဖွင့်)..."
-                placeholderTextColor="#4b5563"
+                placeholder="အမိန့်ပေးပါ..."
+                placeholderTextColor="#475569"
                 value={inputText}
                 onChangeText={setInputText}
+                onSubmitEditing={handleSend}
               />
               <TouchableOpacity style={styles.sendBtn} onPress={handleSend}>
                 <Text style={styles.sendBtnText}>➤</Text>
@@ -238,42 +303,57 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#030712', paddingHorizontal: 16 },
-  header: { alignItems: 'center', marginTop: 40, marginBottom: 5 },
-  appTitle: { color: '#06b6d4', fontSize: 18, fontWeight: 'bold', letterSpacing: 2 },
+  container: { flex: 1, backgroundColor: '#020617', paddingHorizontal: 16 },
+  header: { alignItems: 'center', marginTop: 40, marginBottom: 10 },
+  appTitle: { color: '#06b6d4', fontSize: 16, fontWeight: 'bold', letterSpacing: 2 },
   statusBadge: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#10b981', marginRight: 6 },
-  statusText: { color: '#10b981', fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
-
+  onlineDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#10b981', marginRight: 6 },
+  statusText: { color: '#10b981', fontSize: 10, fontWeight: 'bold', letterSpacing: 1 },
+  
   coreWrapper: { alignItems: 'center', marginVertical: 10 },
-  outerRing: { width: 70, height: 70, borderRadius: 35, borderWidth: 2, borderColor: '#06b6d4', justifyContent: 'center', alignItems: 'center' },
-  innerCore: { width: 46, height: 46, borderRadius: 23, backgroundColor: 'rgba(6, 182, 212, 0.2)', justifyContent: 'center', alignItems: 'center' },
-  activeCore: { backgroundColor: 'rgba(16, 185, 129, 0.6)' },
-  coreText: { color: '#06b6d4', fontWeight: 'bold', fontSize: 15 },
+  outerRing: { width: 70, height: 70, borderRadius: 35, borderWidth: 1, borderColor: '#06b6d4', justifyContent: 'center', alignItems: 'center' },
+  innerCore: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(6,182,212,0.1)', justifyContent: 'center', alignItems: 'center' },
+  activeCore: { backgroundColor: 'rgba(16,185,129,0.5)' },
+  listeningCore: { backgroundColor: 'rgba(239,68,68,0.5)' },
+  coreText: { color: '#06b6d4', fontWeight: 'bold', fontSize: 14 },
 
   chatContainer: { flex: 1, marginVertical: 5 },
-  msgBubble: { padding: 12, borderRadius: 14, marginVertical: 4, maxWidth: '85%' },
-  aiBubble: { backgroundColor: '#111827', alignSelf: 'flex-start', borderWidth: 1, borderColor: '#1f2937' },
+  msgBubble: { padding: 12, borderRadius: 12, marginVertical: 4, maxWidth: '85%' },
+  aiBubble: { backgroundColor: '#0f172a', alignSelf: 'flex-start', borderWidth: 1, borderColor: '#1e293b' },
   userBubble: { backgroundColor: '#0284c7', alignSelf: 'flex-end' },
-  msgText: { color: '#f3f4f6', fontSize: 14, lineHeight: 20 },
+  msgText: { color: '#f8fafc', fontSize: 13, lineHeight: 20 },
 
   bottomSection: { marginBottom: 20 },
   actionRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  actionBtn: { flex: 1, backgroundColor: '#111827', paddingVertical: 10, borderRadius: 10, marginHorizontal: 4, alignItems: 'center', borderWidth: 1, borderColor: '#06b6d4' },
-  activeActionBtn: { backgroundColor: '#06b6d4', borderColor: '#10b981' },
-  actionBtnText: { color: '#06b6d4', fontSize: 13, fontWeight: 'bold' },
+  actionBtn: { flex: 1, backgroundColor: '#0f172a', paddingVertical: 12, borderRadius: 10, marginHorizontal: 4, alignItems: 'center', borderWidth: 1, borderColor: '#1e293b' },
+  activeActionBtn: { backgroundColor: '#06b6d4', borderColor: '#06b6d4' },
+  actionBtnText: { color: '#38bdf8', fontSize: 12, fontWeight: 'bold' },
 
-  inputRow: { flexDirection: 'row', alignItems: 'center' },
-  input: { flex: 1, backgroundColor: '#111827', color: '#f3f4f6', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#1f2937', fontSize: 13 },
-  sendBtn: { backgroundColor: '#06b6d4', width: 48, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
-  sendBtnText: { color: '#030712', fontSize: 18, fontWeight: 'bold' },
+  inputRow: { flexDirection: 'row' },
+  input: { flex: 1, backgroundColor: '#0f172a', color: '#f8fafc', paddingHorizontal: 15, borderRadius: 12, borderWidth: 1, borderColor: '#1e293b', fontSize: 13 },
+  sendBtn: { backgroundColor: '#06b6d4', width: 50, height: 50, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginLeft: 8 },
+  sendBtnText: { color: '#020617', fontSize: 18, fontWeight: 'bold' },
 
-  // Fullscreen Active Call Generative View Styles
-  fullScreenCall: { flex: 1, justifyContent: 'space-between', alignItems: 'center', paddingVertical: 60, backgroundColor: '#050b14' },
-  callBadge: { color: '#06b6d4', backgroundColor: 'rgba(6, 182, 212, 0.1)', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20, fontSize: 10, borderWidth: 1, borderColor: '#06b6d4' },
-  callTitle: { color: '#ffffff', fontSize: 26, fontWeight: 'bold', marginTop: 20 },
-  callStatus: { color: '#10b981', fontSize: 13, marginTop: 5 },
-  callAvatarWrapper: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#1e293b', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#06b6d4' },
-  endCallBtn: { backgroundColor: '#ef4444', paddingHorizontal: 30, paddingVertical: 14, borderRadius: 30 },
-  endCallText: { color: '#ffffff', fontWeight: 'bold', fontSize: 16 }
+  // Generative Workspace Styles
+  workspace: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#020617', padding: 20 },
+  wsBadge: { color: '#06b6d4', fontSize: 10, letterSpacing: 2, borderWidth: 1, borderColor: '#06b6d4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, marginBottom: 30 },
+  wsTitle: { color: '#fff', fontSize: 24, fontWeight: 'bold', marginVertical: 10 },
+  wsStatus: { color: '#10b981', fontSize: 12 },
+  avatarWrap: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#0f172a', justifyContent: 'center', alignItems: 'center', marginVertical: 30, borderWidth: 1, borderColor: '#38bdf8' },
+  closeBtnRed: { backgroundColor: '#ef4444', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 30, marginTop: 40 },
+  closeBtnAction: { backgroundColor: '#0f172a', borderWidth: 1, borderColor: '#06b6d4', paddingHorizontal: 30, paddingVertical: 12, borderRadius: 30, marginTop: 40 },
+  closeBtnText: { color: '#fff', fontWeight: 'bold' },
+  
+  // Terminal Styles
+  termText: { color: '#22c55e', fontFamily: 'monospace', fontSize: 12, marginBottom: 8 },
+  closeBtnGhost: { marginTop: 40, borderBottomWidth: 1, borderBottomColor: '#22c55e' },
+  
+  // Tasks Styles
+  taskCard: { width: '100%', backgroundColor: '#0f172a', padding: 15, borderRadius: 10, marginBottom: 10, borderWidth: 1, borderColor: '#1e293b' },
+  taskText: { color: '#e2e8f0' },
+
+  // System Styles
+  sysRow: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', backgroundColor: '#0f172a', padding: 15, borderRadius: 10, marginBottom: 10 },
+  sysText: { color: '#94a3b8' },
+  sysVal: { color: '#38bdf8', fontWeight: 'bold' }
 });

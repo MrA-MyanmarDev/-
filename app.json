@@ -7,11 +7,7 @@
     "userInterfaceStyle": "dark",
     "android": {
       "package": "com.arkarlinnthit.ai",
-      "permissions": [
-        "CAMERA",
-        "RECORD_AUDIO",
-        "FLASHLIGHT"
-      ]
+      "permissions": ["CAMERA", "RECORD_AUDIO", "FLASHLIGHT"]
     }
   }
 }
